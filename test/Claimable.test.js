@@ -1,4 +1,4 @@
-const { shouldFail } = require('openzeppelin-test-helpers');;
+const { shouldFail } = require('openzeppelin-test-helpers');
 
 const Claimable = artifacts.require('Claimable');
 
