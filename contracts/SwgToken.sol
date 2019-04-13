@@ -5,7 +5,7 @@ import "../openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "../openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol";
 
 
-contract ProjectToken is ERC20, ERC20Burnable, Claimable {
+contract SwgToken is ERC20, ERC20Burnable, Claimable {
     string public name = "SkyWay Global Token";
     string public symbol = "SWG";
     uint8 public decimals = 8;
