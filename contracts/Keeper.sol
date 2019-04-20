@@ -21,7 +21,14 @@ contract Keeper is Claimable {
     // the sum of registered balance
     uint256 public totalBalance;
 
-    constructor(IERC20 _token, uint256 _unFreezeStartDate, uint256 _totalUnFreezeDate) public {
+    constructor(
+        IERC20 _token,
+        uint256 _unFreezeStartDate,
+        uint256 _totalUnFreezeDate
+    ) public {
+        // solhint-disable-next-line not-rely-on-time
+        require(_unFreezeStartDate >= block.timestamp);
+        require(_totalUnFreezeDate > _unFreezeStartDate);
         token = _token;
         unFreezeStartDate = _unFreezeStartDate;
         totalUnFreezeDate = _totalUnFreezeDate;
@@ -30,7 +37,8 @@ contract Keeper is Claimable {
     function addBalance(address _to, uint256 _value) public onlyOwner {
         require(_to != address(0));
         require(_value > 0);
-        require(totalBalance.add(_value) <= token.balanceOf(address(this)), "not enough tokens");
+        require(totalBalance.add(_value)
+                <= token.balanceOf(address(this)), "not enough tokens");
         balances[_to] = balances[_to].add(_value);
         totalBalance = totalBalance.add(_value);
     }
@@ -51,9 +59,12 @@ contract Keeper is Claimable {
                 return balances[_holder];
             }
             // tokens are partially unfrozen
-            uint256 partialFreezePeriodLen = totalUnFreezeDate.sub(unFreezeStartDate);
+            uint256 partialFreezePeriodLen =
+                totalUnFreezeDate.sub(unFreezeStartDate);
             uint256 secondsSincePeriodStart = now.sub(unFreezeStartDate);
-            uint256 amount = balances[_holder].mul(secondsSincePeriodStart).div(partialFreezePeriodLen);
+            uint256 amount = balances[_holder]
+                .mul(secondsSincePeriodStart)
+                .div(partialFreezePeriodLen);
             return amount;
         }
         // tokens are totally frozen
