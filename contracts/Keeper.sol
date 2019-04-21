@@ -18,6 +18,8 @@ contract Keeper is Claimable {
     uint256 public totalUnFreezeDate;
     // the records about individual balances
     mapping(address => uint256) public balances;
+    // the records about already withdrawn amounts
+    mapping(address => uint256) public withdrawnBalances;
     // the sum of registered balance
     uint256 public totalBalance;
 
@@ -47,7 +49,12 @@ contract Keeper is Claimable {
         require(_to != address(0));
         require(_value > 0);
         require(unFreezeStartDate < now, "not unfrozen yet");
+        require(
+            (getUnfrozenAmount(msg.sender).sub(withdrawnBalances[msg.sender]))
+            >= _value
+        );
         balances[msg.sender] = balances[msg.sender].sub(_value);
+        withdrawnBalances[msg.sender] = withdrawnBalances[msg.sender].add(_value);
         totalBalance = totalBalance.sub(_value);
         token.transfer(_to, _value);
     }
