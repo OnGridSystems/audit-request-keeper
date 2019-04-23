@@ -27,7 +27,7 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
     );
   });
 
-  it('totalUnFreezeDate should be more then unFreezeStartDate',
+  it('totalUnFreezeDate should be more than unFreezeStartDate',
     async function () {
       await shouldFail.reverting(
         Keeper.new(this.token.address, this.totalUnfreeze, this.startUnfreeze)
@@ -38,7 +38,7 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
     }
   );
 
-  describe('All funds are frozen yet', function () {
+  describe('all funds are frozen yet', function () {
     beforeEach(async function () {
       this.keeper = await Keeper.new(
         this.token.address, this.startUnfreeze, this.totalUnfreeze
@@ -46,16 +46,16 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
       await this.token.mint(this.keeper.address, new BN('500'));
       await this.keeper.addBalance(investor, new BN('123'));
     });
-    describe('Test getUnfrozenAmount', function () {
-      it('No unfrozen funds', async function () {
+    describe('test getUnfrozenAmount', function () {
+      it('no unfrozen funds', async function () {
         (await this.keeper.getUnfrozenAmount(investor))
           .should.be.bignumber.equal(new BN('0'));
         (await this.keeper.getUnfrozenAmount(otherAcct))
           .should.be.bignumber.equal(new BN('0'));
       });
     });
-    describe('Test withdraw', function () {
-      it('Unable to withdraw frozen funds', async function () {
+    describe('test withdraw', function () {
+      it('unable to withdraw frozen funds', async function () {
         await shouldFail(
           this.keeper.withdraw(otherAcct, new BN('12'), { from: investor })
         );
@@ -63,7 +63,7 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
     });
   });
 
-  describe('Funds are partially unfrozen', function () {
+  describe('funds are partially unfrozen', function () {
     let unfrozen;
     beforeEach(async function () {
       this.keeper = await Keeper.new(
@@ -73,26 +73,26 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
       await this.keeper.addBalance(investor, new BN('1234567890'));
       await time.increaseTo(this.afterStartUnfreeze);
     });
-    describe('Test getUnfrozenAmount', function () {
-      it('Some funds are accessible', async function () {
+    describe('test getUnfrozenAmount', function () {
+      it('some funds are accessible', async function () {
         unfrozen = await this.keeper.getUnfrozenAmount(investor);
         unfrozen.should.be.bignumber.equal(new BN('7348618'));
       });
     });
-    describe('Test withdraw', function () {
-      it('Unable to withdraw more than unfrozen funds', async function () {
+    describe('test withdraw', function () {
+      it('unable to withdraw more than unfrozen funds', async function () {
         await shouldFail.reverting(
           this.keeper.withdraw(
             otherAcct, new BN('7348619'), { from: investor }
           )
         );
       });
-      it('Able to withdraw within unfrozen funds', async function () {
+      it('able to withdraw within unfrozen funds', async function () {
         await this.keeper.withdraw(
           otherAcct, new BN('7348618'), { from: investor }
         );
       });
-      it('Unable to withdraw any more without waiting', async function () {
+      it('unable to withdraw any more without waiting', async function () {
         await this.keeper.withdraw(
           otherAcct, new BN('7348618'), { from: investor }
         );
@@ -100,7 +100,7 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
           this.keeper.withdraw(otherAcct, new BN('1'), { from: investor })
         );
       });
-      it('But can withdraw some after small wait', async function () {
+      it('but can withdraw some after small wait', async function () {
         await this.keeper.withdraw(
           otherAcct, new BN('7348618'), { from: investor }
         );
@@ -112,7 +112,7 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
     });
   });
 
-  describe('Funds totally unfrozen', function () {
+  describe('funds totally unfrozen', function () {
     beforeEach(async function () {
       this.keeper = await Keeper.new(
         this.token.address, this.startUnfreeze, this.totalUnfreeze
@@ -121,21 +121,21 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
       await this.keeper.addBalance(investor, new BN('123'));
       await time.increaseTo(this.afterTotalUnfreeze);
     });
-    describe('Test getUnfrozenAmount', function () {
-      it('Can withdrawal funds within balance', async function () {
+    describe('test getUnfrozenAmount', function () {
+      it('can withdrawal funds within balance', async function () {
         (await this.keeper.getUnfrozenAmount(investor))
           .should.be.bignumber.equal(new BN('123'));
         (await this.keeper.getUnfrozenAmount(otherAcct))
           .should.be.bignumber.equal(new BN('0'));
       });
     });
-    describe('Test withdraw', function () {
-      it('Able to withdraw within balance', async function () {
+    describe('test withdraw', function () {
+      it('able to withdraw within balance', async function () {
         await this.keeper.withdraw(
           otherAcct, new BN('123'), { from: investor }
         );
       });
-      it('Unable to withdraw more than balance', async function () {
+      it('unable to withdraw more than balance', async function () {
         await shouldFail(
           this.keeper.withdraw(otherAcct, new BN('124'), { from: investor })
         );
