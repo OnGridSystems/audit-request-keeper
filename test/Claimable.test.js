@@ -11,7 +11,7 @@ contract('Claimable', function (accounts) {
 
   it('should have an owner', async function () {
     const owner = await claimable.owner();
-    assert.isTrue(owner !== 0);
+    owner.should.not.equal(0);
   });
 
   it('changes pendingOwner after transfer', async function () {
@@ -19,19 +19,25 @@ contract('Claimable', function (accounts) {
     await claimable.transferOwnership(newOwner);
     const pendingOwner = await claimable.pendingOwner();
 
-    assert.isTrue(pendingOwner === newOwner);
+    pendingOwner.should.equal(newOwner);
   });
 
-  it('should prevent to claimOwnership from no pendingOwner', async function () {
-    await shouldFail.reverting(claimable.claimOwnership({ from: accounts[2] }));
-  });
+  it('should prevent to claimOwnership from no pendingOwner',
+    async function () {
+      await shouldFail.reverting(
+        claimable.claimOwnership({ from: accounts[2] })
+      );
+    }
+  );
 
   it('should prevent non-owners from transfering', async function () {
     const other = accounts[2];
     const owner = await claimable.owner.call();
 
-    assert.isTrue(owner !== other);
-    await shouldFail.reverting(claimable.transferOwnership(other, { from: other }));
+    owner.should.not.equal(other);
+    await shouldFail.reverting(
+      claimable.transferOwnership(other, { from: other })
+    );
   });
 
   describe('after initiating a transfer', function () {
@@ -46,7 +52,7 @@ contract('Claimable', function (accounts) {
       await claimable.claimOwnership({ from: newOwner });
       const owner = await claimable.owner();
 
-      assert.isTrue(owner === newOwner);
+      owner.should.equal(newOwner);
     });
   });
 });
