@@ -1,4 +1,10 @@
-const { BN, shouldFail, time } = require('openzeppelin-test-helpers');
+const {
+  BN,
+  constants,
+  shouldFail,
+  time,
+} = require('openzeppelin-test-helpers');
+const { ZERO_ADDRESS } = constants;
 
 const Keeper = artifacts.require('Keeper');
 const Token = artifacts.require('SwgToken');
@@ -37,6 +43,44 @@ contract('Keeper', function ([owner, investor, otherAcct]) {
       );
     }
   );
+
+  describe('test addBalance basic checks', function () {
+    beforeEach(async function () {
+      this.keeper = await Keeper.new(
+        this.token.address, this.startUnfreeze, this.totalUnfreeze
+      );
+      await this.token.mint(this.keeper.address, new BN('10'));
+    });
+    it('cant add balance to ZERO_ADDRESS', async function () {
+      await shouldFail(this.keeper.addBalance(ZERO_ADDRESS, new BN('10')));
+    });
+    it('cant increase balance on 0', async function () {
+      await shouldFail(this.keeper.addBalance(investor, new BN('0')));
+    });
+    it('should be enougn unoccupied tokens', async function () {
+      await shouldFail(this.keeper.addBalance(investor, new BN('20')));
+    });
+  });
+
+  describe('test withdraw basic checks', function () {
+    beforeEach(async function () {
+      this.keeper = await Keeper.new(
+        this.token.address, this.startUnfreeze, this.totalUnfreeze
+      );
+      await this.token.mint(this.keeper.address, new BN('10'));
+      await this.keeper.addBalance(investor, new BN('10'));
+    });
+    it('cant withdraw to ZERO_ADDRESS', async function () {
+      await shouldFail(
+        this.keeper.withdraw(ZERO_ADDRESS, new BN('10'), { from: investor })
+      );
+    });
+    it('cant withdraw 0 tokens', async function () {
+      await shouldFail(
+        this.keeper.withdraw(otherAcct, new BN('0'), { from: investor })
+      );
+    });
+  });
 
   describe('all funds are frozen yet', function () {
     beforeEach(async function () {
