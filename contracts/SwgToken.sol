@@ -17,6 +17,7 @@ contract SwgToken is ERC20, ERC20Burnable, Claimable {
      * @return A boolean that indicates if the operation was successful.
      */
     function mint(address to, uint256 value) public onlyOwner returns (bool) {
+        require(value > 0);
         _mint(to, value);
         return true;
     }

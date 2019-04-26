@@ -1,52 +1,50 @@
-const { shouldFail } = require('openzeppelin-test-helpers');
+const { expectEvent, shouldFail } = require('openzeppelin-test-helpers');
 
 const Claimable = artifacts.require('Claimable');
 
-contract('Claimable', function (accounts) {
-  let claimable;
-
+contract('Claimable', function ([owner, account, otherAccount]) {
   beforeEach(async function () {
-    claimable = await Claimable.new();
+    this.claimable = await Claimable.new();
   });
 
   it('should have an owner', async function () {
-    const owner = await claimable.owner();
-    assert.isTrue(owner !== 0);
+    (await this.claimable.owner()).should.not.equal(0);
   });
 
   it('changes pendingOwner after transfer', async function () {
-    const newOwner = accounts[1];
-    await claimable.transferOwnership(newOwner);
-    const pendingOwner = await claimable.pendingOwner();
-
-    assert.isTrue(pendingOwner === newOwner);
+    await this.claimable.transferOwnership(account);
+    (await this.claimable.pendingOwner()).should.equal(account);
   });
 
-  it('should prevent to claimOwnership from no pendingOwner', async function () {
-    await shouldFail.reverting(claimable.claimOwnership({ from: accounts[2] }));
-  });
+  it('should prevent to claimOwnership from no pendingOwner',
+    async function () {
+      await shouldFail.reverting(
+        this.claimable.claimOwnership({ from: otherAccount })
+      );
+    }
+  );
 
   it('should prevent non-owners from transfering', async function () {
-    const other = accounts[2];
-    const owner = await claimable.owner.call();
-
-    assert.isTrue(owner !== other);
-    await shouldFail.reverting(claimable.transferOwnership(other, { from: other }));
+    (await this.claimable.owner.call()).should.not.equal(otherAccount);
+    await shouldFail.reverting(
+      this.claimable.transferOwnership(otherAccount, { from: otherAccount })
+    );
   });
 
   describe('after initiating a transfer', function () {
-    let newOwner;
-
     beforeEach(async function () {
-      newOwner = accounts[1];
-      await claimable.transferOwnership(newOwner);
+      await this.claimable.transferOwnership(account);
     });
 
     it('changes allow pending owner to claim ownership', async function () {
-      await claimable.claimOwnership({ from: newOwner });
-      const owner = await claimable.owner();
-
-      assert.isTrue(owner === newOwner);
+      const { logs } = await this.claimable.claimOwnership({ from: account });
+      expectEvent.inLogs(
+        logs, 'OwnershipTransferred', {
+          previousOwner: owner,
+          newOwner: account,
+        }
+      );
+      (await this.claimable.owner()).should.equal(account);
     });
   });
 });
